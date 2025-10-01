@@ -18,7 +18,29 @@ const Login = ({ onLogin }) => {
     }
   };
 
-  
+  return (
+    <div className="login-container">
+      <form onSubmit={handleSubmit} className="login-form">
+        <h2>Вход в систему</h2>
+        {error && <div className="error">{error}</div>}
+        <input
+          type="text"
+          placeholder="Имя пользователя"
+          value={formData.username}
+          onChange={(e) => setFormData({...formData, username: e.target.value})}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Пароль"
+          value={formData.password}
+          onChange={(e) => setFormData({...formData, password: e.target.value})}
+          required
+        />
+        <button type="submit">Войти</button>
+      </form>
+    </div>
+  );
 };
 
 export default Login;
