@@ -1,26 +1,43 @@
-// подключение бд
-const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'construction_defect_control',
-  password: process.env.DB_PASSWORD || 'password',
-  port: process.env.DB_PORT || 5432,
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+
+const authRoutes = require('./routes/auth');
+const defectsRoutes = require('./routes/defects');
+const projectsRoutes = require('./routes/projects');
+const usersRoutes = require('./routes/users');
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/defects', defectsRoutes);
+app.use('/api/projects', projectsRoutes);
+app.use('/api/users', usersRoutes);
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ message: 'Система управления дефектами работает', timestamp: new Date().toISOString() });
 });
 
-// аутентификация
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+// Error handling
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Что-то пошло не так!' });
+});
 
-  if (!token) {
-    return res.status(401).json({ error: 'Токен доступа отсутствует' });
-  }
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({ error: 'Маршрут не найден' });
+});
 
-  jwt.verify(token, process.env.JWT_SECRET || 'secret', (err, user) => {
-    if (err) {
-      return res.status(403).json({ error: 'Неверный токен' });
-    }
-    req.user = user;
-    next();
-  });
-};
+app.listen(PORT, () => {
+  console.log(`🚀 Сервер запущен на порту ${PORT}`);
+  console.log(`📍 База данных: ${process.env.DB_NAME}`);
+  console.log(`🔗 API доступно по: http://localhost:${PORT}/api`);
+});
